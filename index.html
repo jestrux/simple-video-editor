@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Veecut</title>
+
+    <style>
+        @font-face{
+            font-family: Logo;
+            src:url("fonts/AbrilFatface-Regular.ttf");
+        }
+        
+        @font-face{
+            font-family: "Comfortaa";
+            src:url("fonts/Comfortaa-Regular.ttf");
+        }
+
+        *{
+            box-sizing: border-box;
+            user-select: none;
+            font-family: "Comfortaa", sans-serif;
+        }
+
+        html, body{
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: rgba(33, 34, 41, 0.98);
+        }
+
+        .layout{
+            display: flex;
+        }
+
+        .layout.inline{
+            display: inline-flex;
+        }
+        
+        .layout.wrap{
+            flex-wrap: wrap;
+        }
+        
+        .layout.justified{
+            justify-content: space-between;
+        }
+        
+        .layout.vertical{
+            flex-direction: column;
+        }
+
+        .center,
+        .center-center{
+            align-items: center;
+        }
+        
+        .center-center{
+            justify-content: center;
+        }
+
+        #titleBar{
+            position: relative;
+            padding: 0.5em;
+            padding-bottom: 0;
+            display: flex;
+            justify-content: center;
+            border-bottom: 1px solid #555;
+        }
+
+        #logo{
+            font-family: "Logo", serif;
+            font-size: 30px;
+            color: #888787;
+            letter-spacing: 0.1em;
+        }
+
+        #videoArea{
+            position: relative;
+            height: 300px;
+        }
+
+        #dropZone{
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(62, 228, 120, 0.8);
+            text-align: center;
+            color: #d8ffe6;
+            z-index: 10;
+        }
+
+        #dropZone.hidden,
+        #videoArea video.hidden{
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #dropZone.hovered{
+            background: rgba(62, 228, 120, 1);
+        }
+
+        #dropZone:before{
+            content: "";
+            position: absolute;
+            left: 3px;
+            right: 3px;
+            top: 3px;
+            bottom: 3px;
+            border: 5px dashed #d8ffe6;
+            pointer-events: none;
+            transition: opacity 0.25s ease-out;
+        }
+
+        #dropZone:not(.hovered):before{
+            opacity: 0;
+        }
+
+        #dropZone svg{
+            width: 65px;
+            height: 65px;
+            fill: #b0eec7;
+            margin-bottom: 1em;
+        }
+        
+        #dropTitle{
+            font-size: 2em;
+            line-height: 1.35em;
+            margin-bottom: 0.35em;
+        }
+
+        #videoPlayer{
+            height: 100%;
+        }
+
+        #videoPlayer video{
+            height: 100%;
+            width: 100%;
+            background: #000;
+            object-fit: contain;
+        }
+
+        #videoControls{
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 0.3em 1em;
+            z-index: 1;
+            background: rgba(33, 34, 41, 0.8);
+        }
+
+        #videoTimes{
+            flex: 1;
+            padding: 0 1em;
+            color: #fff;
+        }
+
+        #videoTimes span{
+            width: 66px;
+        }
+
+        #timeSetterWrapper{
+            position: relative;
+            flex: 1;
+            margin: 0 1em;
+        }
+        
+        #timeSetterWrapper div{
+            position: absolute;
+            top: 1px;
+            bottom: 0;
+            margin: auto 0;
+            left: 0;
+            height: 5px;
+            background: rgba(254, 98, 119, 0.8);
+        }
+        
+        #timeSetterWrapper div:last-of-type{
+            left: auto;
+            right: -2px;
+        }
+
+        #timeSetter{
+            height: 10px;
+            width: 100%;
+        }
+
+        #playPause{
+            padding: 0.8em 1em;
+            font-size: 0.7em;
+            background: rgba(33, 34, 41, 0.98);
+            color: #abb1d5;
+            border: 2px solid #abb1d5;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        #controls{
+            position: relative;
+        }
+
+        #controls input{
+            width: 50%;
+            height: 80px;
+            font-size: 2em;
+            background: #434652;
+            color: #b0b2c7;
+            text-align: center;
+            border: none;
+            outline: none;
+            letter-spacing: 0.06em;
+        }
+
+        #controls input:first-child{
+            border-right: 1px solid #555769;
+        }
+
+        #controls input:read-only{
+            opacity: 0.3;
+        }
+        
+        #controls input::selection{
+            background: #dee0ee;
+            color: #24252b;
+        }
+
+        #looper{
+            height: 40px;
+            width: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            margin: auto;
+            border: none;
+            border-radius: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+            background: rgba(160, 171, 232, 0.278);
+            border: 2px solid #8383c3;
+            color: #ababf7;
+            outline: none;
+        }
+
+        #looper svg{
+            fill: currentColor;
+        }
+
+        #looper.on{
+            border-color: #9d9dea;
+            color: #333373;
+            background: rgb(138, 138, 195);
+        }
+
+        #looper:disabled{
+            border-color: #444454;
+            color: #5f5f73;
+            background: rgb(59, 59, 70);
+        }
+
+        #submitButton{
+            border: none;
+            width: 100%;
+            height: 80px;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            background: #5b5d6b;
+            color: #aaadc1;
+            background: #abb1d5;
+            color: #4a4d65;
+        }
+
+        #submitButton:disabled{
+            opacity: 0.3;
+        }
+    </style>
+</head>
+<body>
+    <div id="veecut">
+        <div id="videoArea">
+            <div id="dropZone" class="layout vertical center-center"
+                :class="{'hovered': hovering, 'hidden': videoPath && videoPath.length}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M13 7h-2v4H7v2h4v4h2v-4h4v-2h-4V7zm-1-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+                <span id="dropTitle">
+                    Drag &amp; drop </br>Video Here
+                </span>
+            </div>
+
+            <video-player v-if="videoPath && videoPath.length" 
+                :src="videoPath"
+                :start-time="startTime"
+                :end-time="endTime"
+                :loop="loopVideo"
+                @duration="videoDuration = $event" />
+        </div>
+
+        <div id="controls" class="layout">
+            <input type="text" 
+                :value="formattedStartTime"
+                :readonly="!videoPath || !videoPath.length"
+                @input="_setStartTime($event)">
+
+            <button id="looper" @click="loopVideo = !loopVideo"
+                :disabled="!videoPath || !videoPath.length"
+                :class="{'on':loopVideo}">
+                <svg width="30" height="30" viewBox="0 0 24 24"><path d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"/><path d="M0 0h24v24H0z" fill="none"/></svg>
+            </button>
+
+            <input type="text"
+                :value="formattedEndTime"
+                :readonly="!videoPath || !videoPath.length"
+                @input="_setEndTime($event)">
+        </div>
+
+        <button id="submitButton"
+            @click="saveVideo"
+            :disabled="!videoPath || !videoPath.length || (startTime === 0 && endTime === videoDuration)">
+            CUT VIDEO
+        </button>
+    </div>
+
+    <script>
+        if (typeof module === 'object') {window.module = module; module = undefined;}
+    </script>
+    <script src="vue.js"></script>
+
+    <script type="text/x-template" id="video-player">
+        <div id="videoPlayer">
+            <video ref="video" autoplay :src="src"
+                :loop="loop"
+                @timeupdate="setCurrentTime($event.target.currentTime)" />
+            
+            <div id="videoControls" class="layout center">
+                <button id="playPause" @click="togglePlay"
+                    :disabled="!src || !src.length">Play/Pause</button>
+
+                <div id="videoTimes" class="layout center">
+                    <span>{{ formatTime(currentTime) }}</span>
+
+                    <div id="timeSetterWrapper">
+                        <div :style="{width: `calc(${startTime*100/duration}% - 5px)`}"/>
+                        <div :style="{width: `calc(${(duration - endTime)*100/duration}% - 6.3px)`}"/>
+                        <input id="timeSetter" type="range"
+                            min="0" :max="duration"
+                            :value="currentTime"
+                            @change="setCurrentTime($event.target.value, true)" />
+                    </div>
+    
+                    <span>{{ formatTime(duration) }}</span>
+                </div>
+            </div>
+        </div>
+    </script>
+    <script src="video-player.js"></script>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+
+        new Vue({
+            el: '#veecut',
+            data: {
+                hovering: false,
+                videoPath: null,
+                startTime: 0,
+                endTime: 0,
+                videoDuration: 0,
+                loopVideo: false
+            },
+            created(){
+                this.setupDragAndDrop();
+            },
+            computed: {
+                formattedStartTime: function(){
+                    return this.formatTime(this.startTime);
+                },
+                formattedEndTime: function(){
+                    return this.formatTime(this.endTime);
+                }
+            },
+            watch: {
+                videoDuration: function(newValue){
+                    if(!this.endTime)
+                        this.endTime = newValue
+                }
+            },
+            methods: {
+                setupDragAndDrop(){
+                    window.ondragover = (e) => {
+                        this.handleHover(e, true);
+                        return false
+                    };
+                    window.ondragstart = (e) => {
+                        this.handleHover(e, true);
+                        return false
+                    };
+                    window.ondragenter = (e) => {
+                        this.handleHover(e, true);
+                        return false
+                    };
+                    window.ondragleave = (e) => {
+                        this.handleHover(e, false);
+                        return false
+                    };
+                    window.ondragend = (e) => {
+                        this.handleHover(e, false);
+                        return false
+                    };
+                    window.ondrop = (e) => {
+                        this.handleHover(e, false);
+                        this.handleDrop(e);
+                        return false;
+                    };
+                },
+                handleHover(e, status){
+                    this.hovering = status;
+                    e.stopPropagation();
+                    e.preventDefault();
+                },
+                handleDrop(e){
+                    this.videoPath = null;
+                    this.startTime = 0;
+                    this.endTime = 0;
+                    this.videoDuration = 0;
+
+                    Vue.nextTick(() => {
+                        this.videoPath = e.dataTransfer.files[0].path;
+                    })
+                },
+                formatTime(time = 0){
+                    const hr  = Math.floor((time/3600));
+                    const min = Math.floor(((time%3600)/60));
+                    const sec = Math.floor((time%60));
+
+                    return `${hr}:${min}:${sec}`.split(':')
+                            .map(t => t.padStart(2, '0'))
+                            .join(':');
+                },
+                _parseTime(str){
+                    return str.split(':').reverse()
+                        .reduce((total, num, index) => {
+                            num = Math.floor(num);
+                            return total + parseInt(num) * Math.pow(60, index);
+                        }, 0);
+                },
+                _setStartTime(e){
+                    setTimeout(() => {
+                        const timeStr = e.target.value;
+                        const newTime = this._parseTime(timeStr);
+                        
+                        if(newTime > this.videoDuration || newTime < 0)
+                            return this.$forceUpdate();
+
+                        this.startTime = newTime; 
+                    }, 1000);
+                },
+                _setEndTime(e){
+                    if(e.data === ".")
+                        return true;
+
+                    setTimeout(() => {
+                        const timeStr = e.target.value;
+                        const newTime = this._parseTime(timeStr);
+                        if(newTime > this.videoDuration)
+                            return this.$forceUpdate();
+    
+                        this.endTime = newTime;
+                    }, 1000);
+                },
+                saveVideo(){
+                    ipcRenderer.send('save-video');
+                }
+            }
+        });
+    </script>
+    <script>if (window.module) module = window.module;</script>
+</body>
+</html>
