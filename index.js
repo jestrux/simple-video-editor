@@ -1,6 +1,7 @@
 const {menubar} = require('menubar');
-const {ipcMain} = require("electron");
+const {ipcMain, Notification} = require("electron");
 const ffmpeg = require('fluent-ffmpeg');
+let mainApp = {}; // for things that shouldn't be garbage collected
 
 const mb = menubar({
     icon: 'icon.png',
@@ -21,25 +22,16 @@ mb.on('ready', () => {
     console.log('app is ready');
 });
 
-ipcMain.on('log', (event, content) => {
+ipcMain.on('log', (_event, content) => {
     console.log(content);
 });
 
-ipcMain.on('save-video', (event, link) => {
-    //   clipboard.writeText(link, 'selection')
-});
-
-ipcMain.on('state-change', (event, state) => {
-    switch (state) {
-        case "video-loaded":
-        default:
-            mb.window.setSize(630, 460);
-            break;
-    }
+ipcMain.on('cut-video', (_event, ...params) => {
+    cutVideo(...params);
 });
 
 function cutVideo(filePath = __dirname + "/friends.webm", startTime = "00:00:15", duration = "10", outputPath = __dirname + '/friends-cut.mp4') {
-    console.log("Cutting....");
+    mb.window.webContents.send('cut-progress', 0);
     ffmpeg(filePath)
         .setStartTime(startTime)
         .setDuration(duration)
@@ -47,16 +39,32 @@ function cutVideo(filePath = __dirname + "/friends.webm", startTime = "00:00:15"
         .withSize('750x?')
         .output(outputPath)
         .on('end', function (err) {
-            if (err)
+            if (err){
                 console.log("Error clipping!", err);
-            if (!err)
-                console.log('conversion Done');
+                mb.window.webContents.send('cut-error', 'Failed', error);
+                return;
+            }
+            
+            mb.window.webContents.send('cut-done', filePath);
+            console.log('cut done', filePath);
+
+            mainApp.notification = new Notification({
+                title: 'Video was successfully cut',
+                body: 'You can find new cut video in your Downloads'
+            });
+            mainApp.notification.on("click", _ev => {
+                console.log("User Clicked on Notification");
+                mb.window.previewFile(outputPath);
+            });
+            mainApp.notification.show();
         })
         .on('progress', function (progress) {
+            mb.window.webContents.send('cut-progress', progress.percent);
             console.log('Progress......' + progress.percent + '%');
         })
         .on('error', function (err) {
             console.log('error: ', err);
+            mb.window.webContents.send('cut-error', 'Failed', error);
         })
         .run();
 }

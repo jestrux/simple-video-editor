@@ -11,7 +11,7 @@ Vue.component('video-player', {
             this._getVideoDuration(this.src, (duration) => {
                 this.duration = duration;
                 this.$emit('duration', duration);
-                this.$refs.video.volume = 50;
+                this.$refs.video.volume = 1;
             });
         }
     },
@@ -37,8 +37,10 @@ Vue.component('video-player', {
         setCurrentTime(time, updateVideo){
             const video = this.$refs.video;
             time = parseInt(time);
-            if(time > this.endTime)
+            if(time > this.endTime && !this.loop){
+                video.pause();
                 return this.setCurrentTime(this.endTime, true);
+            }
             else if(time < this.startTime)
                 return this.setCurrentTime(this.startTime, true);
 
@@ -47,9 +49,7 @@ Vue.component('video-player', {
                 video.currentTime = time;
             }
 
-            if(time === this.endTime && !this.loop)
-                video.pause();
-            else if(time === this.endTime && this.loop)
+            if(time >= this.endTime && this.loop)
                 return this.setCurrentTime(this.startTime, true);
             else if(time === this.startTime && this.loop && video.paused)
                 video.play();
