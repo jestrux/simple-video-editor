@@ -1,26 +1,44 @@
-const {menubar} = require('menubar');
-const {ipcMain, Notification, app} = require("electron");
+const {BrowserWindow, ipcMain, Notification, app} = require("electron");
 const ffmpeg = require('fluent-ffmpeg');
-const path = require('path'), fs =require('fs');
+const fs =require('fs');
 let mainApp = {}; // for things that shouldn't be garbage collected
+let mainWindow = {};
 
-const mb = menubar({
-    icon: 'icon.png',
-    browserWindow: {
-        // width: 1000, height: 460,
-        width: 650, height: 460,
-        transparent: true
-    },
-    preloadWindow: true,
-    webPreferences: {
+// mb.on('after-create-window', () => mainWindow.openDevTools())
+
+function createWindow () {
+    mainWindow = new BrowserWindow({
+      width: 700,
+      height: 480,
+      webPreferences: {
         nodeIntegration: true
-    }
+      }
+    });
+  
+    mainWindow.loadFile('index.html')
+  
+    // Open the DevTools.
+    // mainWindow.webContents.openDevTools()
+}
+
+// mb.on('ready', () => {
+//     console.log('app is ready');
+// });
+app.whenReady().then(createWindow);
+
+// Quit when all windows are closed.
+app.on('window-all-closed', () => {
+    // On macOS it is common for applications and their menu bar
+    // to stay active until the user quits explicitly with Cmd + Q
+    if (process.platform !== 'darwin')
+        app.quit();
 });
 
-// mb.on('after-create-window', () => mb.window.openDevTools())
-
-mb.on('ready', () => {
-    console.log('app is ready');
+app.on('activate', () => {
+    // On macOS it's common to re-create a window in the app when the
+    // dock icon is clicked and there are no other windows open.
+    if (BrowserWindow.getAllWindows().length === 0)
+        createWindow();
 });
 
 ipcMain.on('log', (_event, content) => {
@@ -42,7 +60,7 @@ async function cutVideo(filePath, startTime, duration, outputPath) {
         outputPath = app.getPath("downloads") + '/' + fileName + ext;
     }
     
-    mb.window.webContents.send('cut-progress', 0);
+    mainWindow.webContents.send('cut-progress', 0);
     ffmpeg(filePath)
         .setStartTime(startTime)
         .setDuration(duration)
@@ -52,7 +70,7 @@ async function cutVideo(filePath, startTime, duration, outputPath) {
         .on('end', function (error) {
             if (error){
                 console.log("Error clipping!", error);
-                mb.window.webContents.send('cut-error', 'Failed', error);
+                mainWindow.webContents.send('cut-error', 'Failed', error);
 
                 mainApp.notification = new Notification({
                     title: 'Failed to cut video',
@@ -63,7 +81,7 @@ async function cutVideo(filePath, startTime, duration, outputPath) {
                 return;
             }
             
-            mb.window.webContents.send('cut-done', outputPath);
+            mainWindow.webContents.send('cut-done', outputPath);
             console.log('cut done', outputPath);
 
             mainApp.notification = new Notification({
@@ -71,12 +89,12 @@ async function cutVideo(filePath, startTime, duration, outputPath) {
                 body: 'You can find new cut video in your Downloads'
             });
             mainApp.notification.on("click", _ev => {
-                mb.window.previewFile(outputPath);
+                mainWindow.previewFile(outputPath);
             });
             mainApp.notification.show();
         })
         .on('progress', function (progress) {
-            mb.window.webContents.send('cut-progress', progress.percent);
+            mainWindow.webContents.send('cut-progress', progress.percent);
             console.log('Progress......' + progress.percent + '%');
         })
         .on('error', function (error) {
@@ -86,7 +104,7 @@ async function cutVideo(filePath, startTime, duration, outputPath) {
                 body: error.toString()
             });
             mainApp.notification.show();
-            mb.window.webContents.send('cut-error', 'Failed', error);
+            mainWindow.webContents.send('cut-error', 'Failed', error);
         })
         .run();
 }
