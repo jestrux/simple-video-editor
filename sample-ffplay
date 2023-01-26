@@ -1,0 +1,21 @@
+ffplay -i wout-standing.mp4 -vf \
+"drawtext=text=WOUT:\
+fontfile=/System/Library/Fonts/Supplemental/Arial Black.ttf:\
+fontcolor=black:\
+fontsize=30:\
+box=1:\
+boxcolor=white:\
+boxborderw=12:\
+x=(main_w/2-text_w/2):\
+y=(main_h-text_h-30):\
+enable='between(t,7,7.7)', \
+drawtext=text=WOUT - STANDING:\
+fontfile=/System/Library/Fonts/Supplemental/Arial Black.ttf:\
+fontcolor=black:\
+fontsize=30:\
+box=1:\
+boxcolor=white:\
+boxborderw=12:\
+x=(main_w/2-text_w/2):\
+y=(main_h-text_h-30):\
+enable='between(t,7.7,8)'"

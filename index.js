@@ -1,24 +1,24 @@
-const {BrowserWindow, ipcMain, Notification, app} = require("electron");
-const ffmpeg = require('fluent-ffmpeg');
-const fs =require('fs');
+const { BrowserWindow, ipcMain, Notification, app } = require("electron");
+const ffmpeg = require("fluent-ffmpeg");
+const fs = require("fs");
 let mainApp = {}; // for things that shouldn't be garbage collected
 let mainWindow = {};
 
 // mb.on('after-create-window', () => mainWindow.openDevTools())
 
-function createWindow () {
-    mainWindow = new BrowserWindow({
-      width: 700,
-      height: 480,
-      webPreferences: {
-        nodeIntegration: true
-      }
-    });
-  
-    mainWindow.loadFile('index.html')
-  
-    // Open the DevTools.
-    // mainWindow.webContents.openDevTools()
+function createWindow() {
+	mainWindow = new BrowserWindow({
+		width: 700,
+		height: 480,
+		webPreferences: {
+			nodeIntegration: true,
+		},
+	});
+
+	mainWindow.loadFile("index.html");
+
+	// Open the DevTools.
+	// mainWindow.webContents.openDevTools()
 }
 
 // mb.on('ready', () => {
@@ -27,97 +27,129 @@ function createWindow () {
 app.whenReady().then(createWindow);
 
 // Quit when all windows are closed.
-app.on('window-all-closed', () => {
-    // On macOS it is common for applications and their menu bar
-    // to stay active until the user quits explicitly with Cmd + Q
-    if (process.platform !== 'darwin')
-        app.quit();
+app.on("window-all-closed", () => {
+	// On macOS it is common for applications and their menu bar
+	// to stay active until the user quits explicitly with Cmd + Q
+	if (process.platform !== "darwin") app.quit();
 });
 
-app.on('activate', () => {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
-    if (BrowserWindow.getAllWindows().length === 0)
-        createWindow();
+app.on("activate", () => {
+	// On macOS it's common to re-create a window in the app when the
+	// dock icon is clicked and there are no other windows open.
+	if (BrowserWindow.getAllWindows().length === 0) createWindow();
 });
 
-ipcMain.on('log', (_event, content) => {
-    console.log(content);
+ipcMain.on("log", (_event, content) => {
+	console.log(content);
 });
 
-ipcMain.on('cut-video', (_event, ...params) => {
-    cutVideo(...params);
+ipcMain.on("cut-video", (_event, ...params) => {
+	cutVideo(...params);
 });
 
 async function cutVideo(filePath, startTime, duration, outputPath) {
-    if(!outputPath){
-        const ext = '.' + filePath.split('.').pop();
-        let fileName = filePath.split('.');
-        fileName.pop();
-        fileName = fileName.join('.').split('/').pop() + " - chopped";
-        const matchingFiles = await matchingFilesInDir(app.getPath("downloads"), fileName);
-        fileName += (matchingFiles > 0) ? ' - ' + matchingFiles : '';
-        outputPath = app.getPath("downloads") + '/' + fileName + ext;
+	if (!outputPath) {
+		const ext = "." + filePath.split(".").pop();
+		let fileName = filePath.split(".");
+		fileName.pop();
+		fileName = fileName.join(".").split("/").pop() + " - chopped";
+		const matchingFiles = await matchingFilesInDir(
+			app.getPath("downloads"),
+			fileName
+		);
+		fileName += matchingFiles > 0 ? " - " + matchingFiles : "";
+		outputPath = app.getPath("downloads") + "/" + fileName + ext;
+	}
+
+	mainWindow.webContents.send("cut-progress", 0);
+	const filter = {
+        filter: "drawtext",
+        options: {
+            text: "WOUT",
+            fontfile: "/System/Library/Fonts/Supplemental/Arial Black.ttf",
+            fontcolor: "black",
+            fontsize: 40,
+            box: 1,
+            boxcolor: "white",
+            boxborderw: "12",
+            x: "(main_w/2-text_w/2)",
+            y: "(main_h-text_h-30)",
+            enable: "between(t,7,7.7)",
+            shadowcolor: "red",
+            shadowx: 2,
+            shadowy: 2,
+        }
     }
-    
-    mainWindow.webContents.send('cut-progress', 0);
-    ffmpeg(filePath)
-        .setStartTime(startTime)
-        .setDuration(duration)
-        .withVideoBitrate('900k')
-        .withSize('750x?')
-        .output(outputPath)
-        .on('end', function (error) {
-            if (error){
-                console.log("Error clipping!", error);
-                mainWindow.webContents.send('cut-error', 'Failed', error);
 
-                mainApp.notification = new Notification({
-                    title: 'Failed to cut video',
-                    body: error.toString()
-                });
-                mainApp.notification.show();
+	const videoFilters = [
+		filter,
+        {...filter, options: {
+            ...filter.options,
+				text: "WOUT - STANDING",
+				enable: "between(t,7.7,8)",
+        }}
+	];
 
-                return;
-            }
-            
-            mainWindow.webContents.send('cut-done', outputPath);
-            console.log('cut done', outputPath);
+	ffmpeg(filePath)
+		.setStartTime(startTime)
+		.setDuration(duration)
+		.withVideoBitrate("900k")
+		.withSize("750x?")
+		// .videoFilters(videoFilters)
+		.output(outputPath)
+		.on("end", function (error) {
+			if (error) {
+				console.log("Error clipping!", error);
+				mainWindow.webContents.send("cut-error", "Failed", error);
 
-            mainApp.notification = new Notification({
-                title: 'Video was successfully cut',
-                body: 'You can find new cut video in your Downloads'
-            });
-            mainApp.notification.on("click", _ev => {
-                mainWindow.previewFile(outputPath);
-            });
-            mainApp.notification.show();
-        })
-        .on('progress', function (progress) {
-            mainWindow.webContents.send('cut-progress', progress.percent);
-            console.log('Progress......' + progress.percent + '%');
-        })
-        .on('error', function (error) {
-            console.log('error: ', error);
-            mainApp.notification = new Notification({
-                title: 'Failed to cut video',
-                body: error.toString()
-            });
-            mainApp.notification.show();
-            mainWindow.webContents.send('cut-error', 'Failed', error);
-        })
-        .run();
+				mainApp.notification = new Notification({
+					title: "Failed to cut video",
+					body: error.toString(),
+				});
+				mainApp.notification.show();
+
+				return;
+			}
+
+			mainWindow.webContents.send("cut-done", outputPath);
+			console.log("cut done", outputPath);
+
+			mainApp.notification = new Notification({
+				title: "Video was successfully cut",
+				body: "You can find new cut video in your Downloads",
+			});
+			mainApp.notification.on("click", (_ev) => {
+				mainWindow.previewFile(outputPath);
+			});
+			mainApp.notification.show();
+		})
+		.on("progress", function (progress) {
+			mainWindow.webContents.send("cut-progress", progress.percent);
+			console.log("Progress......" + progress.percent + "%");
+		})
+		.on("error", function (error) {
+			console.log("error: ", error);
+			mainApp.notification = new Notification({
+				title: "Failed to cut video",
+				body: error.toString(),
+			});
+			mainApp.notification.show();
+			mainWindow.webContents.send("cut-error", "Failed", error);
+		})
+		.run();
 }
 
-function matchingFilesInDir(folder,filter){
-    return new Promise((resolve, reject) => {
-        if (!fs.existsSync(folder)){
-            reject(`Folder: ${folder} not found!`);
-            return;
-        }
-    
-        const files=fs.readdirSync(folder);
-        const matchingFiles = files.filter(filename => filename.indexOf(filter) !== -1);
-        resolve(matchingFiles.length);
-    })
-};
+function matchingFilesInDir(folder, filter) {
+	return new Promise((resolve, reject) => {
+		if (!fs.existsSync(folder)) {
+			reject(`Folder: ${folder} not found!`);
+			return;
+		}
+
+		const files = fs.readdirSync(folder);
+		const matchingFiles = files.filter(
+			(filename) => filename.indexOf(filter) !== -1
+		);
+		resolve(matchingFiles.length);
+	});
+}
