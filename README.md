@@ -2,7 +2,14 @@
 
 A simple, fast video trimmer for macOS.
 
-[![Demo](screenshot.png)](demo.mp4)
+## Demo
+[![Demo](screenshot.png)](https://github.com/user-attachments/assets/ce9e7256-c912-430b-89bb-153678c60241)
+
+https://github.com/user-attachments/assets/ce9e7256-c912-430b-89bb-153678c60241
+
+## Screenshots
+[![Screen shot](screenshot.png)](screenshot.png)
+[![Screen shot dark](screenshot-dark.png)](screenshot-dark.png)
 
 ## Quick Start
 
