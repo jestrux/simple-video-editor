@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Veelo Deep Link Test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    h1 {
+      color: #333;
+    }
+    .test-link {
+      display: inline-block;
+      padding: 12px 24px;
+      margin: 10px 0;
+      background: linear-gradient(135deg, #fb7185, #fb923c);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: transform 0.2s;
+    }
+    .test-link:hover {
+      transform: translateY(-2px);
+    }
+    .instructions {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .code {
+      background: #f0f0f0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 14px;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎬 Veelo Deep Link Test</h1>
+
+  <div class="instructions">
+    <h2>How to Test</h2>
+    <ol>
+      <li>First, build and install your Veelo app:
+        <ul>
+          <li>Run <span class="code">npm run build</span></li>
+          <li>The app will be in the <span class="code">dist</span> folder</li>
+          <li>Install the app on your system</li>
+        </ul>
+      </li>
+      <li>Enter the full path to a video file below</li>
+      <li>Click the "Open in Veelo" button</li>
+      <li>The Veelo app should launch and load your video!</li>
+    </ol>
+  </div>
+
+  <div class="instructions">
+    <h2>Test Custom URL</h2>
+    <p>Enter the full path to a video file:</p>
+    <input
+      type="text"
+      id="videoPath"
+      placeholder="/Users/username/Videos/sample.mp4"
+      value=""
+    >
+    <br>
+    <a href="#" class="test-link" id="customLink">Open in Veelo</a>
+  </div>
+
+  <div class="instructions">
+    <h2>Example Links</h2>
+    <p>Click these if you have test videos at these paths:</p>
+    <a href="veelo://file?path=/Users/username/Downloads/test.mp4" class="test-link">
+      Test: ~/Downloads/test.mp4
+    </a>
+    <br>
+    <a href="veelo://file?path=/Users/username/Videos/sample.mov" class="test-link">
+      Test: ~/Videos/sample.mov
+    </a>
+  </div>
+
+  <div class="instructions">
+    <h2>Command Line Testing</h2>
+    <p>You can also test from the terminal:</p>
+    <pre><code>open "veelo://file?path=/path/to/your/video.mp4"</code></pre>
+  </div>
+
+  <script>
+    const input = document.getElementById('videoPath');
+    const customLink = document.getElementById('customLink');
+
+    customLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      const path = input.value.trim();
+      if (!path) {
+        alert('Please enter a video file path');
+        return;
+      }
+      const url = `veelo://file?path=${encodeURIComponent(path)}`;
+      window.location.href = url;
+    });
+
+    // Update link href when input changes
+    input.addEventListener('input', () => {
+      const path = input.value.trim();
+      if (path) {
+        customLink.href = `veelo://file?path=${encodeURIComponent(path)}`;
+      }
+    });
+  </script>
+</body>
+</html>

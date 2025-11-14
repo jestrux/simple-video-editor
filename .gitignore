@@ -1,6 +1,10 @@
-# .gitignore, files to ignore when pushing to github 
+# .gitignore, files to ignore when pushing to github
 
 dist/
+dist-electron/
+release/
+out/
+.cache/
 
 # app.js in electron folder is generated with browserify using the npm comands.
 electron/app.js
@@ -10,6 +14,7 @@ electron/app.js
 *.mpg
 *.mpeg
 *.mp4
+!demo.mp4
 *.mov
 *.flv
 *.avi

@@ -1,0 +1,31 @@
+appId: com.electron.veelo
+productName: Veelo
+directories:
+  buildResources: build
+  output: dist
+files:
+  - out/**/*
+  - "!out/.DS_Store"
+  - "!**/.DS_Store"
+protocols:
+  - name: Veelo
+    schemes:
+      - veelo
+mac:
+  target:
+    - target: dmg
+      arch:
+        - arm64
+  icon: icon.icns
+  category: public.app-category.video
+  identity: null
+  hardenedRuntime: false
+  gatekeeperAssess: false
+win:
+  target:
+    - nsis
+  icon: icon.icns
+linux:
+  target:
+    - AppImage
+  icon: icon.icns

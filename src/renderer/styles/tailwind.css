@@ -1,0 +1,191 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root,
+  .light {
+    --canvas: 0 0% 92%;
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 6 89% 71%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 18 92% 69%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 6 89% 88%;
+    --accent-foreground: 6 89% 20%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --stroke: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 6 89% 71%;
+    --radius: 0.5rem;
+
+    /* Gradient colors */
+    --gradient-from: #fb7780;
+    --gradient-to: #fb9a7c;
+    --gradient-accent: #fa6479;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --canvas: 20 5% 8%;
+      --background: 20 5% 6%;
+      --foreground: 0 0% 98%;
+      --card: 20 5% 10%;
+      --card-foreground: 0 0% 98%;
+      --popover: 20 5% 10%;
+      --popover-foreground: 0 0% 98%;
+      --primary: 6 89% 71%;
+      --primary-foreground: 0 0% 98%;
+      --secondary: 20 8% 16%;
+      --secondary-foreground: 0 0% 98%;
+      --muted: 0 0% 14.9%;
+      --muted-foreground: 0 0% 63.9%;
+      --accent: 20 8% 18%;
+      --accent-foreground: 0 0% 98%;
+      --destructive: 0 62.8% 30.6%;
+      --destructive-foreground: 0 0% 98%;
+      --border: 0 0% 14.9%;
+      --stroke: 0 0% 14.9%;
+      --input: 0 0% 14.9%;
+      --ring: 6 89% 71%;
+
+      /* Gradient colors for dark mode - increased opacity */
+      --gradient-from: rgba(251, 119, 128, 0.6);
+      --gradient-to: rgba(251, 154, 124, 0.5);
+      --gradient-accent: rgba(250, 100, 121, 0.55);
+    }
+  }
+
+  .dark {
+    color-scheme: dark;
+    --canvas: 20 5% 8%;
+    --background: 20 5% 6%;
+    --foreground: 0 0% 98%;
+    --card: 20 5% 10%;
+    --card-foreground: 0 0% 98%;
+    --popover: 20 5% 10%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 6 89% 71%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 20 8% 16%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 20 8% 18%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --stroke: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 6 89% 71%;
+
+    /* Gradient colors for dark mode - increased opacity */
+    --gradient-from: rgba(251, 119, 128, 0.6);
+    --gradient-to: rgba(251, 154, 124, 0.5);
+    --gradient-accent: rgba(250, 100, 121, 0.55);
+  }
+
+  * {
+    @apply border-stroke;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  input,
+  textarea {
+    user-select: text;
+    -webkit-user-select: text;
+  }
+
+  /* Remove focus outlines */
+  button:focus,
+  button:focus-visible,
+  input:focus,
+  input:focus-visible,
+  [role="slider"]:focus,
+  [role="slider"]:focus-visible {
+    outline: none;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Primary gradient - light mode vibrant */
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, var(--gradient-from), var(--gradient-to));
+  }
+
+  /* Accent gradient - for hover states */
+  .bg-gradient-accent {
+    background: linear-gradient(135deg, var(--gradient-accent), var(--gradient-to));
+  }
+
+  /* Horizontal gradient - for progress bars */
+  .bg-gradient-horizontal {
+    background: linear-gradient(90deg, var(--gradient-from), var(--gradient-to));
+  }
+
+  /* Card gradient - subtle elevation (light mode only) */
+  .bg-gradient-card {
+    background: linear-gradient(180deg, hsl(var(--card)), hsl(var(--accent)));
+  }
+
+  /* Dark mode subtle gradients */
+  .dark .bg-gradient-primary {
+    background: linear-gradient(135deg, var(--gradient-from), var(--gradient-to));
+  }
+
+  .dark .bg-gradient-accent {
+    background: linear-gradient(135deg, var(--gradient-accent), var(--gradient-to));
+  }
+
+  .dark .bg-gradient-horizontal {
+    background: linear-gradient(90deg, var(--gradient-from), var(--gradient-to));
+  }
+
+  .dark .bg-gradient-card {
+    background: linear-gradient(180deg, hsl(var(--card)), hsl(var(--accent)));
+  }
+
+  /* Gradient glow for drop zone (dashed border + gradient glow) */
+  .border-gradient-glow {
+    border: 2px dashed hsl(var(--primary));
+    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.1),
+                0 0 20px -5px hsl(var(--primary) / 0.3),
+                inset 0 0 20px -10px hsl(var(--primary) / 0.1);
+  }
+
+  .dark .border-gradient-glow {
+    border: 2px dashed hsl(var(--primary));
+    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.15),
+                0 0 30px -5px hsl(var(--primary) / 0.4),
+                inset 0 0 30px -10px hsl(var(--primary) / 0.15);
+  }
+
+  /* Electron draggable region */
+  .draggable {
+    -webkit-app-region: drag;
+  }
+
+  .non-draggable {
+    -webkit-app-region: no-drag;
+  }
+}
